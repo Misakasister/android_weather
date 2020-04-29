@@ -116,9 +116,9 @@ public class WeatherActivity extends AppCompatActivity {
 //            weatherId = weather.basic.weatherId;
 //            showWeatherInfo(weather);
 //        }else{
-            weatherId = getIntent().getStringExtra("weather_id");
-            weatherLayout.setVisibility(View.INVISIBLE);
-            requestWeather("CN101010100");
+        weatherId = getIntent().getStringExtra("weather_id");
+        weatherLayout.setVisibility(View.INVISIBLE);
+        requestWeather("CN101010100");
 //        }
 
         //图片
@@ -149,7 +149,7 @@ public class WeatherActivity extends AppCompatActivity {
             }
         });
     }
-private void loadingBingPic(){
+    private void loadingBingPic(){
         String requestBingPic = "http://guolin.tech/api/bing_pic";
         HttpUtil.sendOkHttpRequest(requestBingPic, new Callback() {
             @Override
@@ -171,10 +171,10 @@ private void loadingBingPic(){
                 });
             }
         });
-}
+    }
 
 
-     //根据 id 获取真实天气
+    //根据 id 获取真实天气
     public void requestWeather(final String weatherId){
         Log.d(TAG, "requestWeather: "+weatherId);
         final Weather weather = new Weather();
@@ -193,102 +193,104 @@ private void loadingBingPic(){
                 weather.basic.update.updateTime =now.getUpdate().getLoc();
                 weather.basic.weatherId = weatherId;
                 Log.d(TAG, "onSuccess: "+weather.basic.cityName);
+                //未来几天的天气预报
+                HeWeather.getWeatherForecast(WeatherActivity.this, weatherId, new HeWeather.OnResultWeatherForecastBeanListener() {
+                    @Override
+                    public void onError(Throwable throwable) {
+                        Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
+                        swipeRefresh.setRefreshing(false);
+                        Log.d(TAG, "onError: forcast");
+                    }
 
+                    @Override
+                    public void onSuccess(interfaces.heweather.com.interfacesmodule.bean.weather.forecast.Forecast forecast) {
+                        for(int i = 0; i < forecast.getDaily_forecast().size();i++){
+                            Forecast forecastTemp = new Forecast();
+                            forecastTemp.date = forecast.getDaily_forecast().get(i).getDate();
+                            forecastTemp.temperature.max=forecast.getDaily_forecast().get(i).getTmp_max();
+                            forecastTemp.temperature.min = forecast.getDaily_forecast().get(i).getTmp_min();
+                            forecastTemp.more.info = forecast.getDaily_forecast().get(i).getCond_code_d();
+                            weather.forecasts.add(forecastTemp);
+                        }
+                        //AQI 指数
+                        HeWeather.getAirNow(WeatherActivity.this, weatherId, new HeWeather.OnResultAirNowBeansListener() {
+                            @Override
+                            public void onError(Throwable throwable) {
+                                Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
+                                swipeRefresh.setRefreshing(false);
+                                Log.d(TAG, "onError: getAirNow");
+                            }
+
+                            @Override
+                            public void onSuccess(AirNow airNow) {
+                                weather.aqi.city.aqi=airNow.getAir_now_city().getAqi();
+                                weather.aqi.city.pm25=airNow.getAir_now_city().getPm25();
+                                //获取实况天气
+                                HeWeather.getWeatherNow(WeatherActivity.this, weatherId, new HeWeather.OnResultWeatherNowBeanListener() {
+                                    @Override
+                                    public void onError(Throwable throwable) {
+                                        Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
+                                        swipeRefresh.setRefreshing(false);
+                                        Log.d(TAG, "onError: now");
+                                    }
+
+                                    @Override
+                                    public void onSuccess(Now now) {
+                                        Log.d(TAG, "onSuccess: "+now.getNow().getTmp());
+                                        weather.now.temperature=now.getNow().getTmp();
+                                        weather.now.more.Info=now.getNow().getCond_txt();
+                                        //获取建议
+                                        HeWeather.getWeatherLifeStyle(WeatherActivity.this, "CN101010100", new HeWeather.OnResultWeatherLifeStyleBeanListener() {
+                                            @Override
+                                            public void onError(Throwable throwable) {
+                                                Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
+                                                swipeRefresh.setRefreshing(false);
+                                            }
+                                            @Override
+                                            public void onSuccess(Lifestyle lifestyle) {
+                                                for(int i = 0; i < lifestyle.getLifestyle().size(); i++){
+                                                    if(lifestyle.getLifestyle().get(i).getType().equals("comf")){
+                                                        weather.suggestion.comfort.info=lifestyle.getLifestyle().get(i).getTxt();
+                                                    }else if(lifestyle.getLifestyle().get(i).getType().equals("cw")){
+                                                        weather.suggestion.carWash.info = lifestyle.getLifestyle().get(i).getTxt();
+                                                    }else if(lifestyle.getLifestyle().get(i).getType().equals("sport")){
+                                                        weather.suggestion.sport.info = lifestyle.getLifestyle().get(i).getTxt();
+                                                    }
+                                                }
+                                                //绘制界面
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+//                                                        if(weather != null &&"ok".equals(weather.status)){
+//                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
+//                            editor.putString("weather",responseText);
+//                            editor.apply();
+//                                                            showWeatherInfo(weather);
+//                                                        }else{
+//                                                            Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
+//                                                        }
+                                                        showWeatherInfo(weather);
+                                                        swipeRefresh.setRefreshing(false);
+                                                    }
+                                                });
+                                                loadingBingPic();
+                                            }
+                                        });
+
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+
+                });
             }
         });
 
-//        //未来几天的天气预报
-//        HeWeather.getWeatherForecast(WeatherActivity.this, weatherId, new HeWeather.OnResultWeatherForecastBeanListener() {
-//            @Override
-//            public void onError(Throwable throwable) {
-//                      Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
-//                      swipeRefresh.setRefreshing(false);
-//            }
-//
-//            @Override
-//            public void onSuccess(interfaces.heweather.com.interfacesmodule.bean.weather.forecast.Forecast forecast) {
-//                for(int i = 0; i < forecast.getDaily_forecast().size();i++){
-//                   Forecast forecastTemp = new Forecast();
-//                   forecastTemp.date = forecast.getDaily_forecast().get(i).getDate();
-//                   forecastTemp.temperature.max=forecast.getDaily_forecast().get(i).getTmp_max();
-//                   forecastTemp.temperature.min = forecast.getDaily_forecast().get(i).getTmp_min();
-//                   forecastTemp.more.info = forecast.getDaily_forecast().get(i).getCond_code_d();
-//                   weather.forecasts.add(forecastTemp);
-//                }
-//            }
-//        });
-//
-//        //AQI 指数
-//        HeWeather.getAirNow(WeatherActivity.this, weatherId, new HeWeather.OnResultAirNowBeansListener() {
-//            @Override
-//            public void onError(Throwable throwable) {
-//                Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
-//                swipeRefresh.setRefreshing(false);
-//                Log.d(TAG, "onError: getAirNow");
-//            }
-//
-//            @Override
-//            public void onSuccess(AirNow airNow) {
-//                weather.aqi.city.aqi=airNow.getAir_now_city().getAqi();
-//                weather.aqi.city.pm25=airNow.getAir_now_city().getPm25();
-//            }
-//        });
-//
-//        //获取实况天气
-//        HeWeather.getWeatherNow(WeatherActivity.this, weatherId, new HeWeather.OnResultWeatherNowBeanListener() {
-//            @Override
-//            public void onError(Throwable throwable) {
-//                Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
-//                swipeRefresh.setRefreshing(false);
-//            }
-//
-//            @Override
-//            public void onSuccess(Now now) {
-//                Log.d(TAG, "onSuccess: "+now.getNow().getTmp());
-//                weather.now.temperature=now.getNow().getTmp();
-//                weather.now.more.Info=now.getNow().getCond_txt();
-//            }
-//        });
-//
-//        //获取建议
-//        HeWeather.getWeatherLifeStyle(WeatherActivity.this, "CN101010100", new HeWeather.OnResultWeatherLifeStyleBeanListener() {
-//            @Override
-//            public void onError(Throwable throwable) {
-//                Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
-//                swipeRefresh.setRefreshing(false);
-//            }
-//            @Override
-//            public void onSuccess(Lifestyle lifestyle) {
-//                    for(int i = 0; i < lifestyle.getLifestyle().size(); i++){
-//                        if(lifestyle.getLifestyle().get(i).getType().equals("comf")){
-//                            weather.suggestion.comfort.info=lifestyle.getLifestyle().get(i).getTxt();
-//                        }else if(lifestyle.getLifestyle().get(i).getType().equals("cw")){
-//                            weather.suggestion.carWash.info = lifestyle.getLifestyle().get(i).getTxt();
-//                        }else if(lifestyle.getLifestyle().get(i).getType().equals("sport")){
-//                            weather.suggestion.sport.info = lifestyle.getLifestyle().get(i).getTxt();
-//                        }
-//                    }
-//            }
-//        });
-//        //绘制界面
-//        runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        if(weather != null &&"ok".equals(weather.status)){
-////                            SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
-////                            editor.putString("weather",responseText);
-////                            editor.apply();
-//                            showWeatherInfo(weather);
-//                        }else{
-//                            Toast.makeText(WeatherActivity.this,"获取天气失败",Toast.LENGTH_SHORT).show();
-//                        }
-//                        swipeRefresh.setRefreshing(false);
-//                    }
-//                });
-//        loadingBingPic();
     }
 
-   // 根据天气id获得天气信息
+    // 根据天气id获得天气信息
 //    public void requestWeather(final String weatherId){
 //        String weatherUrl = "http://guolin.tech/api/weather?cityid="+weatherId+"&key=d8c67448f18343549de0c909fc0fb2f8";
 //        HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
