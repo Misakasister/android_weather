@@ -7,6 +7,7 @@ import android.widget.TextView;
 import com.example.weather.db.City;
 import com.example.weather.db.County;
 import com.example.weather.db.Province;
+import com.example.weather.gson.Basic;
 import com.example.weather.gson.Weather;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -81,6 +82,17 @@ public class Utility {
         }
         return false;
     }
+
+
+
+    //解析Basic 数据 包括 cityname  weatherId;  update =>{updateTime}
+//    public static Basic handleBasicResponse(String response){
+//     
+//
+//
+//        return new Gson().fromJson()
+//    }
+
 
     //解析天气数据
 

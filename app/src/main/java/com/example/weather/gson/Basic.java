@@ -1,6 +1,6 @@
 package com.example.weather.gson;
 
-import com.google.gson.annotations.SerializedName;
+
 
 /*
 "basic": {
@@ -20,13 +20,10 @@ import com.google.gson.annotations.SerializedName;
  */
 
 public class Basic {
-    @SerializedName("city")  //将json中的city 改为cityname
     public String cityName;
-    @SerializedName("id")
     public String weatherId;
-    public Update update;
+    public Update update = new Update();
     public class  Update{
-        @SerializedName("loc")
         public String updateTime;
     }
 }

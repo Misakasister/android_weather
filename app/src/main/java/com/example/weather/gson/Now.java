@@ -1,14 +1,13 @@
 package com.example.weather.gson;
 
-import com.google.gson.annotations.SerializedName;
 
 public class Now {
-    @SerializedName("tmp")
+//    @SerializedName("tmp")
     public String temperature;
-    @SerializedName("cond")
-    public More more;
+//    @SerializedName("cond")
+    public More more = new More();
     public class More{
-        @SerializedName("txt")
+//        @SerializedName("txt")
         public String Info;
     }
 }

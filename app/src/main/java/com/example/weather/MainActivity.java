@@ -10,6 +10,8 @@ import android.preference.PreferenceManager;
 
 import com.example.weather.gson.Weather;
 
+import interfaces.heweather.com.interfacesmodule.view.HeConfig;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
