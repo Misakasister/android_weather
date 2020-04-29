@@ -50,6 +50,8 @@ import okhttp3.Response;
 
 public class WeatherActivity extends AppCompatActivity {
     private ScrollView weatherLayout;
+    public String mWeatherId;
+
     private TextView titleCity;
     private TextView titleUpdateTime;
     private TextView degreeText;
@@ -105,22 +107,21 @@ public class WeatherActivity extends AppCompatActivity {
         bingPicImg = findViewById(R.id.bing_pic_img);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String weatherString = prefs.getString("weather",null);
+//        String weatherString = prefs.getString("weather",null);//weather存的是天气
 
-
-        final  String weatherId;
 
 //        if(weatherString != null){
 //            //有缓存直接解析数据
 //            Weather weather = Utility.handleWeatherResponse(weatherString);
-//            weatherId = weather.basic.weatherId;
+//            mWeatherId = weather.basic.weatherId;
 //            showWeatherInfo(weather);
 //        }else{
-        weatherId = getIntent().getStringExtra("weather_id");
-        weatherLayout.setVisibility(View.INVISIBLE);
-        requestWeather("CN101010100");
+            mWeatherId = getIntent().getStringExtra("weather_id");
+            weatherLayout.setVisibility(View.INVISIBLE);
+            requestWeather(mWeatherId);
 //        }
-
+//        Log.d(TAG, "onCreate: sting"+weatherString);
+        Log.d(TAG, "onCreate: id"+mWeatherId);
         //图片
         String bingPic = prefs.getString("bing_pic",null);
         if(bingPic!=null){
@@ -134,7 +135,7 @@ public class WeatherActivity extends AppCompatActivity {
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather("CN101010100");
+                requestWeather(mWeatherId);
             }
         });
 
@@ -223,8 +224,14 @@ public class WeatherActivity extends AppCompatActivity {
 
                             @Override
                             public void onSuccess(AirNow airNow) {
-                                weather.aqi.city.aqi=airNow.getAir_now_city().getAqi();
-                                weather.aqi.city.pm25=airNow.getAir_now_city().getPm25();
+                                if(airNow.getAir_now_city()!=null) {
+                                    Log.d(TAG, "onSuccess:air "+airNow.getAir_now_city().getAqi());
+                                    weather.aqi.city.aqi = airNow.getAir_now_city().getAqi();
+                                    weather.aqi.city.pm25 = airNow.getAir_now_city().getPm25();
+                                }else{
+                                    weather.aqi.city.aqi = "无数据";
+                                    weather.aqi.city.pm25 = "无数据";
+                                }
                                 //获取实况天气
                                 HeWeather.getWeatherNow(WeatherActivity.this, weatherId, new HeWeather.OnResultWeatherNowBeanListener() {
                                     @Override

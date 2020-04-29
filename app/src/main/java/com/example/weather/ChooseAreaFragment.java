@@ -82,7 +82,7 @@ public class ChooseAreaFragment extends Fragment {
                 }else if (currentLevel == LEVEL_CITY){
                     selectCity = cityList.get(position);
                     queryCounties();
-                }else  if(currentLevel == LEVEL_COUNTY){
+                }else  if(currentLevel == LEVEL_COUNTY){//县级数据传送天气界面
                     String weatherId = countyList.get(position).getWeatherId();
                     if(getActivity() instanceof MainActivity) {
                         Intent intent = new Intent(getActivity(), WeatherActivity.class);
@@ -93,6 +93,8 @@ public class ChooseAreaFragment extends Fragment {
                         WeatherActivity activity = (WeatherActivity) getActivity();
                         activity.drawerLayout.closeDrawers();
                         activity.swipeRefresh.setRefreshing(true);
+                        Log.d(TAG, "onItemClick: "+weatherId);
+                        activity.mWeatherId = weatherId;
                         activity.requestWeather(weatherId);
                     }
                 }

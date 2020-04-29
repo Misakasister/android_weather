@@ -18,8 +18,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences((this));
-        if(prefs.getString("weather",null)!=null){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences((this));//生成键值文件
+        if(prefs.getString("weather",null)!=null){  //如果pref中有城市id 直接传送，否则留在主界面选择城市
             Intent intent = new Intent(this, WeatherActivity.class);
             startActivity(intent);
             finish();
